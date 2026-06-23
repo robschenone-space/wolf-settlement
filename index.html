@@ -5,80 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wolf Settlement</title>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0; 
-      padding: 15px; 
-      background: #0a3d0a; 
-      color: #fff; 
-      font-size: 1.15em; 
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 15px;
+      background: #0a3d0a;
+      color: #fff;
+      font-size: 1.1em;
     }
-    .container { 
-      max-width: 500px; 
-      margin: 0 auto; 
-      background: #1a5f1a; 
-      padding: 20px; 
-      border-radius: 12px; 
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #1a5f1a;
+      padding: 20px;
+      border-radius: 12px;
     }
-    h1 { text-align: center; color: #ffd700; margin-bottom: 8px; font-size: 1.9em; }
-    p { text-align: center; margin-bottom: 20px; font-size: 1.1em; }
-    .row { 
-      display: flex; 
-      gap: 8px; 
-      margin: 16px 0; 
-      align-items: center; 
+    h1 { 
+      text-align: center; 
+      color: #ffd700; 
+      margin-bottom: 5px; 
+      font-size: 1.9em; 
     }
-    input[type="text"] { 
-      flex: 2.2; 
-      padding: 13px; 
-      font-size: 1.2em; 
-      border-radius: 6px; 
-      border: none; 
+    .subtitle { 
+      text-align: center; 
+      margin-bottom: 20px; 
+      font-size: 1.05em; 
     }
-    input[type="number"] { 
-      flex: 0.35; 
-      padding: 13px; 
-      font-size: 1.2em; 
-      border-radius: 6px; 
-      border: none; 
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0;
     }
-    button { 
-      width: 100%; 
-      padding: 16px; 
-      font-size: 1.2em; 
-      background: #ffd700; 
-      color: #0a3d0a; 
-      border: none; 
-      border-radius: 8px; 
-      font-weight: bold; 
-      margin: 12px 0; 
+    label {
+      min-width: 95px;
+      font-weight: bold;
     }
-    .result { 
-      margin-top: 20px; 
-      padding: 20px; 
-      background: #0f4a0f; 
-      border-radius: 8px; 
-      line-height: 1.9; 
-      font-size: 1.15em; 
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      font-size: 1.05em;
+      border-radius: 6px;
+      border: none;
     }
-    .positive { color: #90EE90; font-weight: bold; }
-    .negative { color: #FF9999; font-weight: bold; }
-    .saved { margin-top: 15px; font-size: 1.05em; color: #ffd700; }
+    input[type="number"] {
+      width: 95px;
+      padding: 12px;
+      font-size: 1.05em;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.15em;
+      background: #ffd700;
+      color: #0a3d0a;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    .clear-btn {
+      background: #ff6666;
+      color: white;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 18px;
+      background: #0f4a0f;
+      border-radius: 8px;
+      line-height: 1.8;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🐺 Wolf Settlement</h1>
-    <p>4 players • $1 per point</p>
-
+    <p class="subtitle">4 players • $1 per point</p>
+    
     <div id="players"></div>
-
+    
     <button onclick="calculate()">Calculate Settlement</button>
     <button onclick="saveRound()">💾 Save This Round</button>
     <button onclick="loadLastRound()">📂 Load Last Round</button>
-
+    <button onclick="clearAll()" class="clear-btn">🗑️ Clear All</button>
+    
     <div id="result" class="result"></div>
-    <div id="savedStatus" class="saved"></div>
   </div>
 
   <script>
@@ -88,52 +102,24 @@
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `
+          <label>Player ${i+1}:</label>
           <input type="text" id="name${i}" placeholder="Player name">
-          <input type="number" id="points${i}" placeholder="Points">
+          <input type="number" id="points${i}" placeholder="pts">
         `;
         container.appendChild(row);
       }
     }
 
     function calculate() {
-      let players = [];
-      let totalPoints = 0;
-
+      let html = "<strong>Settlement Results:</strong><br>";
+      let total = 0;
       for (let i = 0; i < 4; i++) {
         const name = document.getElementById(`name${i}`).value.trim() || `Player ${i+1}`;
-        const points = parseInt(document.getElementById(`points${i}`).value) || 0;
-        players.push({name, points});
-        totalPoints += points;
+        const points = parseFloat(document.getElementById(`points${i}`).value) || 0;
+        html += `${name}: <strong>${points} pts</strong><br>`;
+        total += points;
       }
-
-      players.forEach(p => p.net = 4 * p.points - totalPoints);
-
-      let html = `<h2>Final Results</h2>`;
-      players.forEach(p => {
-        const sign = p.net >= 0 ? '+' : '';
-        html += `<div><strong>${p.name}:</strong> ${p.points} pts → <span class="${p.net >= 0 ? 'positive' : 'negative'}">${sign}$${Math.abs(p.net)}</span></div>`;
-      });
-
-      html += `<h3>Minimal Payments</h3>`;
-      const receivers = players.filter(p => p.net > 0).sort((a,b) => b.net - a.net);
-      const payers = players.filter(p => p.net < 0).sort((a,b) => a.net - b.net);
-
-      let transactions = [];
-      payers.forEach(payer => {
-        let remaining = -payer.net;
-        receivers.forEach(receiver => {
-          if (remaining <= 0) return;
-          const pay = Math.min(remaining, receiver.net);
-          if (pay > 0) {
-            transactions.push(`${payer.name} pays ${receiver.name} $${pay}`);
-            remaining -= pay;
-            receiver.net -= pay;
-          }
-        });
-      });
-
-      transactions.forEach(t => html += `<div>• ${t}</div>`);
-
+      html += `<br><strong>Total Points: ${total}</strong>`;
       document.getElementById('result').innerHTML = html;
     }
 
@@ -145,13 +131,12 @@
           points: document.getElementById(`points${i}`).value
         });
       }
-      localStorage.setItem('lastWolfRound', JSON.stringify(data));
-      document.getElementById('savedStatus').innerHTML = '✅ Saved!';
-      setTimeout(() => document.getElementById('savedStatus').innerHTML = '', 1500);
+      localStorage.setItem('wolfRound', JSON.stringify(data));
+      alert("✅ Round Saved!");
     }
 
     function loadLastRound() {
-      const saved = localStorage.getItem('lastWolfRound');
+      const saved = localStorage.getItem('wolfRound');
       if (saved) {
         const data = JSON.parse(saved);
         for (let i = 0; i < 4; i++) {
@@ -160,9 +145,20 @@
             document.getElementById(`points${i}`).value = data[i].points || '';
           }
         }
-        document.getElementById('savedStatus').innerHTML = '📂 Loaded';
-        setTimeout(() => document.getElementById('savedStatus').innerHTML = '', 1500);
+        alert("📂 Loaded!");
         calculate();
+      } else {
+        alert("No saved round found.");
+      }
+    }
+
+    function clearAll() {
+      if (confirm("Clear all fields?")) {
+        for (let i = 0; i < 4; i++) {
+          document.getElementById(`name${i}`).value = '';
+          document.getElementById(`points${i}`).value = '';
+        }
+        document.getElementById('result').innerHTML = '';
       }
     }
 
