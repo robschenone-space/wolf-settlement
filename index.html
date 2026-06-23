@@ -106,15 +106,33 @@
     }
 
     function calculate() {
-      let html = "<strong>Settlement Results:</strong><br>";
-      let total = 0;
+      let players = [];
+      let totalPoints = 0;
       for (let i = 0; i < 4; i++) {
-        const name = document.getElementById(`name${i}`).value.trim() || `P${i+1}`;
+        const name = document.getElementById(`name${i}`).value.trim() || `Player ${i+1}`;
         const points = parseFloat(document.getElementById(`points${i}`).value) || 0;
-        html += `${name}: <strong>${points} pts</strong><br>`;
-        total += points;
+        players.push({name, points});
+        totalPoints += points;
       }
-      html += `<br><strong>Total Points: ${total}</strong>`;
+
+      let html = "<strong>Settlement Results:</strong><br><br>";
+      players.forEach(p => {
+        html += `${p.name}: <strong>${p.points} pts</strong><br>`;
+      });
+      html += `<br><strong>Total Points: ${totalPoints}</strong><br><br>`;
+
+      // Detailed payments
+      html += "<strong>Who Pays Whom:</strong><br>";
+      const avg = totalPoints / 4;
+      players.forEach(p => {
+        const diff = p.points - avg;
+        if (diff > 0) {
+          html += `• ${p.name} receives $${(diff * 1).toFixed(0)}<br>`;
+        } else if (diff < 0) {
+          html += `• ${p.name} pays $${(-diff * 1).toFixed(0)}<br>`;
+        }
+      });
+
       document.getElementById('result').innerHTML = html;
     }
 
