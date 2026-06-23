@@ -60,8 +60,8 @@
             padding: 15px;
             background: #0a3d0a;
             border-radius: 8px;
-            min-height: 120px;
-            line-height: 1.5;
+            min-height: 140px;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -98,10 +98,10 @@
     <script>
         function calculateSettlement() {
             const players = [
-                {name: document.getElementById('p1').value.trim() || "Player 1", points: parseFloat(document.getElementById('pts1').value) || 0},
-                {name: document.getElementById('p2').value.trim() || "Player 2", points: parseFloat(document.getElementById('pts2').value) || 0},
-                {name: document.getElementById('p3').value.trim() || "Player 3", points: parseFloat(document.getElementById('pts3').value) || 0},
-                {name: document.getElementById('p4').value.trim() || "Player 4", points: parseFloat(document.getElementById('pts4').value) || 0}
+                {name: (document.getElementById('p1').value.trim() || "Player 1"), points: Math.round(parseFloat(document.getElementById('pts1').value) || 0)},
+                {name: (document.getElementById('p2').value.trim() || "Player 2"), points: Math.round(parseFloat(document.getElementById('pts2').value) || 0)},
+                {name: (document.getElementById('p3').value.trim() || "Player 3"), points: Math.round(parseFloat(document.getElementById('pts3').value) || 0)},
+                {name: (document.getElementById('p4').value.trim() || "Player 4"), points: Math.round(parseFloat(document.getElementById('pts4').value) || 0)}
             ];
 
             const totalPoints = players.reduce((sum, p) => sum + p.points, 0);
@@ -109,37 +109,32 @@
 
             let html = "<strong>Settlement (minimal transfers):</strong><br><br>";
 
-            // Calculate net for each player
-            players.forEach(p => {
-                p.net = p.points - avg;
-            });
+            players.forEach(p => p.net = p.points - avg);
 
-            // Sort debtors and creditors
             const debtors = players.filter(p => p.net < 0).sort((a, b) => a.net - b.net);
             const creditors = players.filter(p => p.net > 0).sort((a, b) => b.net - a.net);
 
             let i = 0, j = 0;
             while (i < debtors.length && j < creditors.length) {
-                const debt = -debtors[i].net;
-                const credit = creditors[j].net;
-                const amount = Math.min(debt, credit);
+                let debt = -debtors[i].net;
+                let credit = creditors[j].net;
+                let amount = Math.min(debt, credit);
 
-                if (amount > 0.01) {
-                    html += `${debtors[i].name} pays ${creditors[j].name} <strong>$${amount.toFixed(2)}</strong><br>`;
+                if (amount >= 1) {
+                    html += `${debtors[i].name} pays ${creditors[j].name} <strong>$${Math.round(amount)}</strong><br>`;
                 }
 
                 debtors[i].net += amount;
                 creditors[j].net -= amount;
 
-                if (debtors[i].net > -0.01) i++;
-                if (creditors[j].net < 0.01) j++;
+                if (debtors[i].net > -0.5) i++;
+                if (creditors[j].net < 0.5) j++;
             }
 
-            html += `<br><strong>Total Points: ${totalPoints.toFixed(0)}</strong>`;
+            html += `<br><strong>Total Points: ${totalPoints}</strong>`;
             document.getElementById('result').innerHTML = html;
         }
 
-        // Save / Load functions (unchanged)
         function saveRound() {
             const data = {
                 p1: document.getElementById('p1').value,
