@@ -1,101 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wolf Settlement</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 0; padding: 15px; background: #0a3d0a; color: #fff;}
-        .container {max-width: 520px; margin: 0 auto; background: #1a5f1a; padding: 20px; border-radius: 12px;}
-        h1 {text-align: center; color: #ffd700; margin: 10px 0 5px;}
-        .subtitle {text-align: center; margin-bottom: 20px;}
-        .row {display: flex; align-items: center; margin: 12px 0; gap: 10px;}
-        input[type="text"] {flex: 1; padding: 10px;}
-        input[type="number"] {width: 90px; padding: 10px;}
-        button {background: #ffd700; color: #0a3d0a; font-weight: bold; border: none; padding: 12px; width: 100%; margin: 8px 0; border-radius: 8px; font-size: 1.1em;}
-        .small-btn {padding: 10px; margin: 5px 0; font-size: 1em;}
-        .result {margin-top: 15px; padding: 15px; background: #0a3d0a; border-radius: 8px; line-height: 1.6;}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wolf Settlement</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 15px; 
+      background: #0a3d0a; 
+      color: #fff; 
+      font-size: 1.15em; 
+    }
+    .container { 
+      max-width: 500px; 
+      margin: 0 auto; 
+      background: #1a5f1a; 
+      padding: 20px; 
+      border-radius: 12px; 
+    }
+    h1 { text-align: center; color: #ffd700; margin-bottom: 8px; font-size: 1.9em; }
+    p { text-align: center; margin-bottom: 20px; font-size: 1.1em; }
+    .row { 
+      display: flex; 
+      gap: 8px; 
+      margin: 16px 0; 
+      align-items: center; 
+    }
+    input[type="text"] { 
+      flex: 2.2; 
+      padding: 13px; 
+      font-size: 1.2em; 
+      border-radius: 6px; 
+      border: none; 
+    }
+    input[type="number"] { 
+      flex: 0.35; 
+      padding: 13px; 
+      font-size: 1.2em; 
+      border-radius: 6px; 
+      border: none; 
+    }
+    button { 
+      width: 100%; 
+      padding: 16px; 
+      font-size: 1.2em; 
+      background: #ffd700; 
+      color: #0a3d0a; 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      margin: 12px 0; 
+    }
+    .result { 
+      margin-top: 20px; 
+      padding: 20px; 
+      background: #0f4a0f; 
+      border-radius: 8px; 
+      line-height: 1.9; 
+      font-size: 1.15em; 
+    }
+    .positive { color: #90EE90; font-weight: bold; }
+    .negative { color: #FF9999; font-weight: bold; }
+    .saved { margin-top: 15px; font-size: 1.05em; color: #ffd700; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🐺 Wolf Settlement</h1>
-        <p class="subtitle">4 players • $1 per point</p>
-        
-        <div class="row"><input type="text" id="p1" placeholder="Player 1 name"><input type="number" id="pts1" placeholder="points"></div>
-        <div class="row"><input type="text" id="p2" placeholder="Player 2 name"><input type="number" id="pts2" placeholder="points"></div>
-        <div class="row"><input type="text" id="p3" placeholder="Player 3 name"><input type="number" id="pts3" placeholder="points"></div>
-        <div class="row"><input type="text" id="p4" placeholder="Player 4 name"><input type="number" id="pts4" placeholder="points"></div>
+  <div class="container">
+    <h1>🐺 Wolf Settlement</h1>
+    <p>4 players • $1 per point</p>
 
-        <button onclick="calculateSettlement()">Calculate Settlement</button>
-        
-        <button class="small-btn" onclick="saveRound()">💾 Save This Round</button>
-        <button class="small-btn" onclick="loadRound()">📂 Load Last Round</button>
+    <div id="players"></div>
 
-        <div class="result" id="result"></div>
-    </div>
+    <button onclick="calculate()">Calculate Settlement</button>
+    <button onclick="saveRound()">💾 Save This Round</button>
+    <button onclick="loadLastRound()">📂 Load Last Round</button>
 
-    <script>
-        function calculateSettlement() {
-            const names = [
-                document.getElementById('p1').value.trim() || "Player 1",
-                document.getElementById('p2').value.trim() || "Player 2",
-                document.getElementById('p3').value.trim() || "Player 3",
-                document.getElementById('p4').value.trim() || "Player 4"
-            ];
-            const points = [
-                Math.round(parseFloat(document.getElementById('pts1').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts2').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts3').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts4').value) || 0)
-            ];
+    <div id="result" class="result"></div>
+    <div id="savedStatus" class="saved"></div>
+  </div>
 
-            const total = points.reduce((a, b) => a + b, 0);
+  <script>
+    function init() {
+      const container = document.getElementById('players');
+      for (let i = 0; i < 4; i++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <input type="text" id="name${i}" placeholder="Player name">
+          <input type="number" id="points${i}" placeholder="Points">
+        `;
+        container.appendChild(row);
+      }
+    }
 
-            let html = `<strong>Total Points: ${total}</strong><br><br>`;
-            html += "<strong>Owed / Receives:</strong><br>";
+    function calculate() {
+      let players = [];
+      let totalPoints = 0;
 
-            // Simple winner-take-most logic
-            const max = Math.max(...points);
-            const winnerIndex = points.indexOf(max);
-            const winner = names[winnerIndex];
+      for (let i = 0; i < 4; i++) {
+        const name = document.getElementById(`name${i}`).value.trim() || `Player ${i+1}`;
+        const points = parseInt(document.getElementById(`points${i}`).value) || 0;
+        players.push({name, points});
+        totalPoints += points;
+      }
 
-            for (let i = 0; i < 4; i++) {
-                if (i !== winnerIndex) {
-                    const amount = max - points[i];
-                    html += `${names[i]} owes ${winner} <strong>$${amount}</strong><br>`;
-                }
-            }
+      players.forEach(p => p.net = 4 * p.points - totalPoints);
 
-            document.getElementById('result').innerHTML = html;
+      let html = `<h2>Final Results</h2>`;
+      players.forEach(p => {
+        const sign = p.net >= 0 ? '+' : '';
+        html += `<div><strong>${p.name}:</strong> ${p.points} pts → <span class="${p.net >= 0 ? 'positive' : 'negative'}">${sign}$${Math.abs(p.net)}</span></div>`;
+      });
+
+      html += `<h3>Minimal Payments</h3>`;
+      const receivers = players.filter(p => p.net > 0).sort((a,b) => b.net - a.net);
+      const payers = players.filter(p => p.net < 0).sort((a,b) => a.net - b.net);
+
+      let transactions = [];
+      payers.forEach(payer => {
+        let remaining = -payer.net;
+        receivers.forEach(receiver => {
+          if (remaining <= 0) return;
+          const pay = Math.min(remaining, receiver.net);
+          if (pay > 0) {
+            transactions.push(`${payer.name} pays ${receiver.name} $${pay}`);
+            remaining -= pay;
+            receiver.net -= pay;
+          }
+        });
+      });
+
+      transactions.forEach(t => html += `<div>• ${t}</div>`);
+
+      document.getElementById('result').innerHTML = html;
+    }
+
+    function saveRound() {
+      let data = [];
+      for (let i = 0; i < 4; i++) {
+        data.push({
+          name: document.getElementById(`name${i}`).value.trim(),
+          points: document.getElementById(`points${i}`).value
+        });
+      }
+      localStorage.setItem('lastWolfRound', JSON.stringify(data));
+      document.getElementById('savedStatus').innerHTML = '✅ Saved!';
+      setTimeout(() => document.getElementById('savedStatus').innerHTML = '', 1500);
+    }
+
+    function loadLastRound() {
+      const saved = localStorage.getItem('lastWolfRound');
+      if (saved) {
+        const data = JSON.parse(saved);
+        for (let i = 0; i < 4; i++) {
+          if (data[i]) {
+            document.getElementById(`name${i}`).value = data[i].name || '';
+            document.getElementById(`points${i}`).value = data[i].points || '';
+          }
         }
+        document.getElementById('savedStatus').innerHTML = '📂 Loaded';
+        setTimeout(() => document.getElementById('savedStatus').innerHTML = '', 1500);
+        calculate();
+      }
+    }
 
-        function saveRound() {
-            const data = {
-                p1: document.getElementById('p1').value, p2: document.getElementById('p2').value,
-                p3: document.getElementById('p3').value, p4: document.getElementById('p4').value,
-                pts1: document.getElementById('pts1').value, pts2: document.getElementById('pts2').value,
-                pts3: document.getElementById('pts3').value, pts4: document.getElementById('pts4').value
-            };
-            localStorage.setItem('wolfSettlement', JSON.stringify(data));
-            alert("Round saved!");
-        }
-
-        function loadRound() {
-            const data = JSON.parse(localStorage.getItem('wolfSettlement'));
-            if (data) {
-                document.getElementById('p1').value = data.p1 || "";
-                document.getElementById('p2').value = data.p2 || "";
-                document.getElementById('p3').value = data.p3 || "";
-                document.getElementById('p4').value = data.p4 || "";
-                document.getElementById('pts1').value = data.pts1 || "";
-                document.getElementById('pts2').value = data.pts2 || "";
-                document.getElementById('pts3').value = data.pts3 || "";
-                document.getElementById('pts4').value = data.pts4 || "";
-                alert("Last round loaded!");
-                calculateSettlement();
-            }
-        }
-    </script>
+    window.onload = init;
+  </script>
 </body>
 </html>
