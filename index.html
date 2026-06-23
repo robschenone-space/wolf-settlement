@@ -11,7 +11,6 @@
             padding: 15px;
             background: #0a3d0a;
             color: #fff;
-            font-size: 1.1em;
         }
         .container {
             max-width: 520px;
@@ -23,31 +22,25 @@
         h1 { 
             text-align: center; 
             color: #ffd700; 
-            margin-bottom: 5px; 
-            font-size: 1.9em; 
+            margin: 10px 0 5px;
         }
-        .subtitle {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.05em;
-        }
-        .input-row {
+        .subtitle { text-align: center; margin-bottom: 20px; }
+        .row {
             display: flex;
             align-items: center;
             margin: 12px 0;
             gap: 10px;
         }
-        .input-row label {
-            width: 110px;
-            flex-shrink: 0;
+        label {
+            min-width: 85px;
         }
-        input, button, select {
-            padding: 10px;
-            font-size: 1em;
-            border-radius: 6px;
-        }
-        input {
+        input[type="text"] {
             flex: 1;
+            padding: 10px;
+        }
+        input[type="number"] {
+            width: 85px;
+            padding: 10px;
         }
         button {
             background: #ffd700;
@@ -56,19 +49,21 @@
             border: none;
             padding: 12px;
             width: 100%;
-            margin: 15px 0;
+            margin: 10px 0;
+            border-radius: 8px;
             font-size: 1.1em;
-            cursor: pointer;
         }
-        button:hover {
-            background: #ffed80;
+        .small-btn {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 1em;
         }
         .result {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px;
             background: #0a3d0a;
             border-radius: 8px;
-            min-height: 80px;
+            min-height: 100px;
         }
     </style>
 </head>
@@ -77,57 +72,94 @@
         <h1>🐺 Wolf Settlement</h1>
         <p class="subtitle">4 players • $1 per point</p>
         
-        <div class="input-row">
+        <div class="row">
             <label>Player 1:</label>
-            <input type="text" id="p1" placeholder="Player name" value="">
-            <input type="number" id="pts1" placeholder="points" style="width: 90px;">
+            <input type="text" id="p1" placeholder="Player name">
+            <input type="number" id="pts1" placeholder="points">
         </div>
-        
-        <div class="input-row">
+        <div class="row">
             <label>Player 2:</label>
-            <input type="text" id="p2" placeholder="Player name" value="">
-            <input type="number" id="pts2" placeholder="points" style="width: 90px;">
+            <input type="text" id="p2" placeholder="Player name">
+            <input type="number" id="pts2" placeholder="points">
         </div>
-        
-        <div class="input-row">
+        <div class="row">
             <label>Player 3:</label>
-            <input type="text" id="p3" placeholder="Player name" value="">
-            <input type="number" id="pts3" placeholder="points" style="width: 90px;">
+            <input type="text" id="p3" placeholder="Player name">
+            <input type="number" id="pts3" placeholder="points">
         </div>
-        
-        <div class="input-row">
+        <div class="row">
             <label>Player 4:</label>
-            <input type="text" id="p4" placeholder="Player name" value="">
-            <input type="number" id="pts4" placeholder="points" style="width: 90px;">
+            <input type="text" id="p4" placeholder="Player name">
+            <input type="number" id="pts4" placeholder="points">
         </div>
-        
+
         <button onclick="calculateSettlement()">Calculate Settlement</button>
         
+        <button class="small-btn" onclick="saveRound()">💾 Save This Round</button>
+        <button class="small-btn" onclick="loadRound()">📂 Load Last Round</button>
+
         <div class="result" id="result"></div>
     </div>
 
     <script>
         function calculateSettlement() {
             const players = [
-                {name: document.getElementById('p1').value || "Player 1", points: parseFloat(document.getElementById('pts1').value) || 0},
-                {name: document.getElementById('p2').value || "Player 2", points: parseFloat(document.getElementById('pts2').value) || 0},
-                {name: document.getElementById('p3').value || "Player 3", points: parseFloat(document.getElementById('pts3').value) || 0},
-                {name: document.getElementById('p4').value || "Player 4", points: parseFloat(document.getElementById('pts4').value) || 0}
+                document.getElementById('p1').value || "P1",
+                document.getElementById('p2').value || "P2",
+                document.getElementById('p3').value || "P3",
+                document.getElementById('p4').value || "P4"
+            ];
+            const points = [
+                parseFloat(document.getElementById('pts1').value) || 0,
+                parseFloat(document.getElementById('pts2').value) || 0,
+                parseFloat(document.getElementById('pts3').value) || 0,
+                parseFloat(document.getElementById('pts4').value) || 0
             ];
 
-            let totalPoints = players.reduce((sum, p) => sum + p.points, 0);
-            let html = "<strong>Settlement:</strong><br>";
+            let html = "<strong>Settlement Results:</strong><br>";
+            let total = 0;
 
-            players.forEach(p => {
-                if (p.points !== 0) {
-                    const amount = (p.points * 1).toFixed(2);
-                    html += `${p.name}: <strong>$${amount}</strong><br>`;
+            players.forEach((name, i) => {
+                if (points[i] !== 0) {
+                    html += `${name}: <strong>$${points[i]}</strong><br>`;
+                    total += points[i];
                 }
             });
 
-            html += `<br><strong>Total Points:</strong> ${totalPoints}`;
-            
+            html += `<br><strong>Total Points: ${total}</strong>`;
             document.getElementById('result').innerHTML = html;
+        }
+
+        function saveRound() {
+            const data = {
+                p1: document.getElementById('p1').value,
+                p2: document.getElementById('p2').value,
+                p3: document.getElementById('p3').value,
+                p4: document.getElementById('p4').value,
+                pts1: document.getElementById('pts1').value,
+                pts2: document.getElementById('pts2').value,
+                pts3: document.getElementById('pts3').value,
+                pts4: document.getElementById('pts4').value
+            };
+            localStorage.setItem('wolfSettlement', JSON.stringify(data));
+            alert("Round saved!");
+        }
+
+        function loadRound() {
+            const data = JSON.parse(localStorage.getItem('wolfSettlement'));
+            if (data) {
+                document.getElementById('p1').value = data.p1 || "";
+                document.getElementById('p2').value = data.p2 || "";
+                document.getElementById('p3').value = data.p3 || "";
+                document.getElementById('p4').value = data.p4 || "";
+                document.getElementById('pts1').value = data.pts1 || "";
+                document.getElementById('pts2').value = data.pts2 || "";
+                document.getElementById('pts3').value = data.pts3 || "";
+                document.getElementById('pts4').value = data.pts4 || "";
+                alert("Last round loaded!");
+            } else {
+                alert("No saved round found.");
+            }
         }
     </script>
 </body>
