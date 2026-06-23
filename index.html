@@ -35,23 +35,19 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 14px 0;
-    }
-    label {
-      min-width: 95px;
-      font-weight: bold;
+      margin: 12px 0;
     }
     input[type="text"] {
       flex: 1;
       padding: 12px;
-      font-size: 1.05em;
+      font-size: 1.1em;
       border-radius: 6px;
       border: none;
     }
     input[type="number"] {
-      width: 95px;
+      width: 85px;
       padding: 12px;
-      font-size: 1.05em;
+      font-size: 1.1em;
       border-radius: 6px;
       border: none;
       text-align: center;
@@ -102,7 +98,6 @@
         const row = document.createElement('div');
         row.className = 'row';
         row.innerHTML = `
-          <label>Player ${i+1}:</label>
           <input type="text" id="name${i}" placeholder="Player name">
           <input type="number" id="points${i}" placeholder="pts">
         `;
@@ -114,7 +109,7 @@
       let html = "<strong>Settlement Results:</strong><br>";
       let total = 0;
       for (let i = 0; i < 4; i++) {
-        const name = document.getElementById(`name${i}`).value.trim() || `Player ${i+1}`;
+        const name = document.getElementById(`name${i}`).value.trim() || `P${i+1}`;
         const points = parseFloat(document.getElementById(`points${i}`).value) || 0;
         html += `${name}: <strong>${points} pts</strong><br>`;
         total += points;
