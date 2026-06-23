@@ -112,17 +112,14 @@
       for (let i = 0; i < 4; i++) {
         const name = document.getElementById(`name${i}`).value.trim() || `Player ${i+1}`;
         const points = parseFloat(document.getElementById(`points${i}`).value) || 0;
-        players.push({ name, points });
+        players.push({name, points});
         totalPoints += points;
       }
 
-      // Correct net calculation
-      players.forEach(p => {
-        p.net = (4 * p.points) - totalPoints;
-      });
+      // Correct math
+      players.forEach(p => p.net = 4 * p.points - totalPoints);
 
       let html = "<strong>Final Results</strong><br><br>";
-
       players.forEach(p => {
         const sign = p.net >= 0 ? '+' : '';
         html += `${p.name}: ${p.points} pts → <strong>${sign}$${Math.abs(p.net)}</strong><br>`;
@@ -130,13 +127,72 @@
 
       html += `<br><strong>Minimal Payments:</strong><br>`;
 
-      const receivers = players.filter(p => p.net > 0).sort((a, b) => b.net - a.net);
-      const payers = players.filter(p => p.net < 0).sort((a, b) => a.net - b.net);
+      const receivers = players.filter(p => p.net > 0).sort((a,b) => b.net - a.net);
+      const payers = players.filter(p => p.net < 0).sort((a,b) => a.net - b.net);
 
       let transactions = [];
-
       payers.forEach(payer => {
         let remaining = -payer.net;
         receivers.forEach(receiver => {
           if (remaining <= 0) return;
-          const pay = Math.min(remaining, receiver
+          const pay = Math.min(remaining, receiver.net);
+          if (pay > 0) {
+            transactions.push(`${payer.name} pays ${receiver.name} $${pay}`);
+            remaining -= pay;
+            receiver.net -= pay;
+          }
+        });
+      });
+
+      if (transactions.length === 0) {
+        html += "Everyone is even — no payments needed.";
+      } else {
+        transactions.forEach(t => html += `• ${t}<br>`);
+      }
+
+      document.getElementById('result').innerHTML = html;
+    }
+
+    function saveRound() {
+      let data = [];
+      for (let i = 0; i < 4; i++) {
+        data.push({
+          name: document.getElementById(`name${i}`).value.trim(),
+          points: document.getElementById(`points${i}`).value
+        });
+      }
+      localStorage.setItem('wolfRound', JSON.stringify(data));
+      alert("✅ Round Saved!");
+    }
+
+    function loadLastRound() {
+      const saved = localStorage.getItem('wolfRound');
+      if (saved) {
+        const data = JSON.parse(saved);
+        for (let i = 0; i < 4; i++) {
+          if (data[i]) {
+            document.getElementById(`name${i}`).value = data[i].name || '';
+            document.getElementById(`points${i}`).value = data[i].points || '';
+          }
+        }
+        alert("📂 Loaded!");
+        calculate();
+      } else {
+        alert("No saved round found.");
+      }
+    }
+
+    function clearAll() {
+      if (confirm("Clear all fields?")) {
+        for (let i = 0; i < 4; i++) {
+          document.getElementById(`name${i}`).value = '';
+          document.getElementById(`points${i}`).value = '';
+        }
+        document.getElementById('result').innerHTML = '';
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
