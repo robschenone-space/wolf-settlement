@@ -12,7 +12,7 @@
         .row {display: flex; align-items: center; margin: 12px 0; gap: 10px;}
         input[type="text"] {flex: 1; padding: 10px;}
         input[type="number"] {width: 90px; padding: 10px;}
-        button {background: #ffd700; color: #0a3d0a; font-weight: bold; border: none; padding: 12px; width: 100%; margin: 10px 0; border-radius: 8px; font-size: 1.1em;}
+        button {background: #ffd700; color: #0a3d0a; font-weight: bold; border: none; padding: 12px; width: 100%; margin: 8px 0; border-radius: 8px; font-size: 1.1em;}
         .small-btn {padding: 10px; margin: 5px 0; font-size: 1em;}
         .result {margin-top: 15px; padding: 15px; background: #0a3d0a; border-radius: 8px; line-height: 1.6;}
     </style>
@@ -22,10 +22,10 @@
         <h1>🐺 Wolf Settlement</h1>
         <p class="subtitle">4 players • $1 per point</p>
         
-        <div class="row"><input type="text" id="p1" placeholder="Player 1 name"><input type="number" id="pts1" placeholder="points"></div>
-        <div class="row"><input type="text" id="p2" placeholder="Player 2 name"><input type="number" id="pts2" placeholder="points"></div>
-        <div class="row"><input type="text" id="p3" placeholder="Player 3 name"><input type="number" id="pts3" placeholder="points"></div>
-        <div class="row"><input type="text" id="p4" placeholder="Player 4 name"><input type="number" id="pts4" placeholder="points"></div>
+        <div class="row"><input type="text" id="p1" placeholder="Player 1" value="Joe"><input type="number" id="pts1" placeholder="points" value="10"></div>
+        <div class="row"><input type="text" id="p2" placeholder="Player 2" value="Bill"><input type="number" id="pts2" placeholder="points" value="15"></div>
+        <div class="row"><input type="text" id="p3" placeholder="Player 3" value="Sam"><input type="number" id="pts3" placeholder="points" value="20"></div>
+        <div class="row"><input type="text" id="p4" placeholder="Player 4" value="Rob"><input type="number" id="pts4" placeholder="points" value="30"></div>
 
         <button onclick="calculateSettlement()">Calculate Settlement</button>
         
@@ -37,43 +37,37 @@
 
     <script>
         function calculateSettlement() {
-            let names = [
-                document.getElementById('p1').value.trim() || "Joe",
-                document.getElementById('p2').value.trim() || "Bill",
-                document.getElementById('p3').value.trim() || "Sam",
-                document.getElementById('p4').value.trim() || "Rob"
-            ];
-            let points = [
-                Math.round(parseFloat(document.getElementById('pts1').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts2').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts3').value) || 0),
-                Math.round(parseFloat(document.getElementById('pts4').value) || 0)
-            ];
+            const names = [document.getElementById('p1').value || "Joe", document.getElementById('p2').value || "Bill", 
+                          document.getElementById('p3').value || "Sam", document.getElementById('p4').value || "Rob"];
+            const points = [parseInt(document.getElementById('pts1').value) || 0, parseInt(document.getElementById('pts2').value) || 0, 
+                           parseInt(document.getElementById('pts3').value) || 0, parseInt(document.getElementById('pts4').value) || 0];
 
             const total = points.reduce((a, b) => a + b, 0);
-            const avg = total / 4;
+            const maxPoints = Math.max(...points);
+            const winnerIndex = points.indexOf(maxPoints);
+            const winner = names[winnerIndex];
 
             let html = `<strong>Total Points: ${total}</strong><br><br>`;
-            html += "<strong>Net Results:</strong><br>";
+            html += `<strong>Winner: ${winner} (${maxPoints} pts)</strong><br><br>`;
 
-            let nets = [];
-            names.forEach((name, i) => {
-                const net = points[i] - avg;
-                nets.push({name, net: Math.round(net)});
-                html += `${name}: <strong>${net >= 0 ? '+' : ''}$${Math.abs(Math.round(net))}</strong><br>`;
-            });
-
-            html += `<br><strong>Payments:</strong><br>`;
-            // Simple who owes who logic for your example
-            html += `Joe owes Rob $${Math.round(35)}<br>`;
-            html += `Bill owes Rob $${Math.round(15)}<br>`;
-            html += `Sam gets $${Math.round(5)} from Rob<br>`;
+            html += "<strong>Payments:</strong><br>";
+            for (let i = 0; i < 4; i++) {
+                if (i !== winnerIndex) {
+                    const amount = points[winnerIndex] - points[i];
+                    html += `${names[i]} pays ${winner} <strong>$${amount}</strong><br>`;
+                }
+            }
 
             document.getElementById('result').innerHTML = html;
         }
 
-        function saveRound() { /* same as before */ 
-            const data = {p1: document.getElementById('p1').value, p2: document.getElementById('p2').value, p3: document.getElementById('p3').value, p4: document.getElementById('p4').value, pts1: document.getElementById('pts1').value, pts2: document.getElementById('pts2').value, pts3: document.getElementById('pts3').value, pts4: document.getElementById('pts4').value};
+        function saveRound() {
+            const data = {
+                p1: document.getElementById('p1').value, p2: document.getElementById('p2').value,
+                p3: document.getElementById('p3').value, p4: document.getElementById('p4').value,
+                pts1: document.getElementById('pts1').value, pts2: document.getElementById('pts2').value,
+                pts3: document.getElementById('pts3').value, pts4: document.getElementById('pts4').value
+            };
             localStorage.setItem('wolfSettlement', JSON.stringify(data));
             alert("Round saved!");
         }
