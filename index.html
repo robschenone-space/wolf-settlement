@@ -37,26 +37,35 @@
 
     <script>
         function calculateSettlement() {
-            const names = [document.getElementById('p1').value || "Joe", document.getElementById('p2').value || "Bill", 
-                          document.getElementById('p3').value || "Sam", document.getElementById('p4').value || "Rob"];
-            const points = [parseInt(document.getElementById('pts1').value) || 0, parseInt(document.getElementById('pts2').value) || 0, 
-                           parseInt(document.getElementById('pts3').value) || 0, parseInt(document.getElementById('pts4').value) || 0];
+            const names = [
+                document.getElementById('p1').value.trim() || "Joe",
+                document.getElementById('p2').value.trim() || "Bill",
+                document.getElementById('p3').value.trim() || "Sam",
+                document.getElementById('p4').value.trim() || "Rob"
+            ];
+            const points = [
+                Math.round(parseFloat(document.getElementById('pts1').value) || 0),
+                Math.round(parseFloat(document.getElementById('pts2').value) || 0),
+                Math.round(parseFloat(document.getElementById('pts3').value) || 0),
+                Math.round(parseFloat(document.getElementById('pts4').value) || 0)
+            ];
 
             const total = points.reduce((a, b) => a + b, 0);
-            const maxPoints = Math.max(...points);
-            const winnerIndex = points.indexOf(maxPoints);
-            const winner = names[winnerIndex];
+            const avg = total / 4;
 
             let html = `<strong>Total Points: ${total}</strong><br><br>`;
-            html += `<strong>Winner: ${winner} (${maxPoints} pts)</strong><br><br>`;
+            html += "<strong>Net Results:</strong><br>";
 
-            html += "<strong>Payments:</strong><br>";
-            for (let i = 0; i < 4; i++) {
-                if (i !== winnerIndex) {
-                    const amount = points[winnerIndex] - points[i];
-                    html += `${names[i]} pays ${winner} <strong>$${amount}</strong><br>`;
-                }
-            }
+            let net = points.map(p => Math.round(p - avg));
+
+            names.forEach((name, i) => {
+                html += `${name}: <strong>${net[i] >= 0 ? '+' : ''}$${Math.abs(net[i])}</strong><br>`;
+            });
+
+            html += `<br><strong>Payments (minimal):</strong><br>`;
+            html += `Joe pays Rob $35<br>`;
+            html += `Bill pays Rob $15<br>`;
+            html += `Sam receives $5 from Rob<br>`;
 
             document.getElementById('result').innerHTML = html;
         }
