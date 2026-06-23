@@ -22,10 +22,10 @@
         <h1>🐺 Wolf Settlement</h1>
         <p class="subtitle">4 players • $1 per point</p>
         
-        <div class="row"><input type="text" id="p1" placeholder="Player 1" value="Joe"><input type="number" id="pts1" placeholder="points" value="10"></div>
-        <div class="row"><input type="text" id="p2" placeholder="Player 2" value="Bill"><input type="number" id="pts2" placeholder="points" value="15"></div>
-        <div class="row"><input type="text" id="p3" placeholder="Player 3" value="Sam"><input type="number" id="pts3" placeholder="points" value="20"></div>
-        <div class="row"><input type="text" id="p4" placeholder="Player 4" value="Rob"><input type="number" id="pts4" placeholder="points" value="30"></div>
+        <div class="row"><input type="text" id="p1" placeholder="Player 1 name"><input type="number" id="pts1" placeholder="points"></div>
+        <div class="row"><input type="text" id="p2" placeholder="Player 2 name"><input type="number" id="pts2" placeholder="points"></div>
+        <div class="row"><input type="text" id="p3" placeholder="Player 3 name"><input type="number" id="pts3" placeholder="points"></div>
+        <div class="row"><input type="text" id="p4" placeholder="Player 4 name"><input type="number" id="pts4" placeholder="points"></div>
 
         <button onclick="calculateSettlement()">Calculate Settlement</button>
         
@@ -38,10 +38,10 @@
     <script>
         function calculateSettlement() {
             const names = [
-                document.getElementById('p1').value.trim() || "Joe",
-                document.getElementById('p2').value.trim() || "Bill",
-                document.getElementById('p3').value.trim() || "Sam",
-                document.getElementById('p4').value.trim() || "Rob"
+                document.getElementById('p1').value.trim() || "Player 1",
+                document.getElementById('p2').value.trim() || "Player 2",
+                document.getElementById('p3').value.trim() || "Player 3",
+                document.getElementById('p4').value.trim() || "Player 4"
             ];
             const points = [
                 Math.round(parseFloat(document.getElementById('pts1').value) || 0),
@@ -51,21 +51,21 @@
             ];
 
             const total = points.reduce((a, b) => a + b, 0);
-            const avg = total / 4;
 
             let html = `<strong>Total Points: ${total}</strong><br><br>`;
-            html += "<strong>Net Results:</strong><br>";
+            html += "<strong>Owed / Receives:</strong><br>";
 
-            let net = points.map(p => Math.round(p - avg));
+            // Simple winner-take-most logic
+            const max = Math.max(...points);
+            const winnerIndex = points.indexOf(max);
+            const winner = names[winnerIndex];
 
-            names.forEach((name, i) => {
-                html += `${name}: <strong>${net[i] >= 0 ? '+' : ''}$${Math.abs(net[i])}</strong><br>`;
-            });
-
-            html += `<br><strong>Payments (minimal):</strong><br>`;
-            html += `Joe pays Rob $35<br>`;
-            html += `Bill pays Rob $15<br>`;
-            html += `Sam receives $5 from Rob<br>`;
+            for (let i = 0; i < 4; i++) {
+                if (i !== winnerIndex) {
+                    const amount = max - points[i];
+                    html += `${names[i]} owes ${winner} <strong>$${amount}</strong><br>`;
+                }
+            }
 
             document.getElementById('result').innerHTML = html;
         }
