@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wolf Settlement</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 15px; 
+      background: #0a3d0a; 
+      color: #fff; 
+      font-size: 1.15em; 
+    }
+    .container { 
+      max-width: 520px; 
+      margin: 0 auto; 
+      background: #1a5f1a; 
+      padding: 20px; 
+      border-radius: 12px; 
+    }
+    h1 { text-align: center; color: #ffd700; margin-bottom: 8px; font-size: 1.9em; }
+    p { text-align: center; margin-bottom: 12px; font-size: 1.05em; }
+    .row { 
+      display: flex; 
+      gap: 8px; 
+      margin: 12px 0; 
+      align-items: center; 
+    }
+    .row label { display:none; } /* hidden but present for screen readers */
+    input[type="text"] { 
+      flex: 2; 
+      padding: 10px; 
+      font-size: 1.05em; 
+      border-radius: 6px; 
+      border: none; 
+    }
+    input[type="number"] { 
+      flex: 0.6; 
+      padding: 10px; 
+      font-size: 1.05em; 
+      border-radius: 6px; 
+      border: none; 
+      text-align: right;
+    }
+    .controls { display:flex; gap:8px; flex-direction:column; margin-top:8px; }
+    button { 
+      width: 100%; 
+      padding: 12px; 
+      font-size: 1.05em; 
+      background: #ffd700; 
+      color: #0a3d0a; 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      margin: 6px 0; 
+      cursor: pointer;
+    }
+    button.secondary { background:#0f4a0f; color:#ffd700; border:1px solid #274f27 }
+    .result { 
+      margin-top: 16px; 
+      padding: 16px; 
+      background: #0f4a0f; 
+      border-radius: 8px; 
+      line-height: 1.6; 
+      font-size: 1.05em; 
+    }
+    .positive { color: #90EE90; font-weight: bold; }
+    .negative { color: #FF9999; font-weight: bold; }
+    .saved { margin-top: 10px; font-size: 1.0em; color: #ffd700; min-height:1.2em; }
+    .muted { color: #cfe6cf; font-size:0.95em; }
+    .transactions { margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <h1>🐺 Wolf Settlement</h1>
+    <p class="muted">4 players • $1 per point</p>
+
+    <form id="playersForm" onsubmit="return false;" aria-label="Wolf settlement form">
+      <div id="players" aria-live="polite"></div>
+
+      <div class="controls">
+        <button id="calcBtn" type="button">Calculate Settlement</button>
+        <button id="saveBtn" type="button" class="secondary">💾 Save This Round</button>
+        <button id="loadBtn" type="button" class="secondary">📂 Load Last Round</button>
+      </div>
+    </form>
+
+    <div id="result" class="result" aria-live="polite"></div>
+    <div id="savedStatus" class="saved" aria-live="polite"></div>
+  </div>
+
+  <script>
+    const NUM_PLAYERS = 4;
+    const STORAGE_KEY = 'lastWolfRound';
+
+    function createPlayerRow(i) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <label for="name${i}">Player ${i+1} name</label>
+        <input type="text" id="name${i}" name="name${i}" placeholder="Player name" aria-label="Player ${i+1} name">
+        <label for="points${i}">Points</label>
+        <input type="number" id="points${i}" name="points${i}" placeholder="Points" aria-label="Player ${i+1} points" min="0" step="1">
+      `;
+      return row;
+    }
+
+    function init() {
+      const container = document.getElementById('players');
+      container.innerHTML = '';
+      for (let i = 0; i < NUM_PLAYERS; i++) {
+        container.appendChild(createPlayerRow(i));
+      }
+
+      document.getElementById('calcBtn').addEventListener('click', calculate);
+      document.getElementById('saveBtn').addEventListener('click', saveRound);
+      document.getElementById('loadBtn').addEventListener('click', loadLastRound);
+
+      // If there is saved data, show a hint
+      if (localStorage.getItem(STORAGE_KEY)) {
+        document.getElementById('savedStatus').textContent = 'Saved round found — click "Load Last Round" to restore.';
+        setTimeout(() => document.getElementById('savedStatus').textContent = '', 2500);
+      }
+    }
+
+    function readPlayers() {
+      const players = [];
+      let totalPoints = 0;
+      for (let i = 0; i < NUM_PLAYERS; i++) {
+        const nameInput = document.getElementById(`name${i}`);
+        const pointsInput = document.getElementById(`points{${i}}`) || document.getElementById(`points${i}`);
+        const name = nameInput.value.trim() || `Player ${i+1}`;
+        const raw = pointsInput.value;
+        // parse as integer (points are whole)
+        const points = raw === '' ? 0 : Math.round(Number(raw) || 0);
+        players.push({ name, points });
+        totalPoints += points;
+      }
+      return { players, totalPoints };
+    }
+
+    function calculate() {
+      const { players, totalPoints } = readPlayers();
+      if (players.every(p => p.points === 0)) {
+        document.getElementById('result').innerHTML = '<div>No points entered yet.</div>';
+        return;
+      }
+
+      const average = totalPoints / NUM_PLAYERS; // can be fractional but points are ints
+      // net: positive means player should receive that amount (in $)
+      players.forEach(p => p.net = +(p.points - average).toFixed(2));
+
+      let html = `<h2>Final Results</h2>`;
+      players.forEach(p => {
+        const sign = p.net > 0 ? '+' : (p.net < 0 ? '−' : '');
+        const cls = p.net > 0 ? 'positive' : (p.net < 0 ? 'negative' : '');
+        html += `<div><strong>${escapeHtml(p.name)}:</strong> ${p.points} pts → <span class="${cls}">${sign}$${Math.abs(p.net).toFixed(2)}</span></div>`;
+      });
+
+      // Compute minimal transactions
+      html += `<h3>Minimal Payments</h3>`;
+      const receivers = players
+        .filter(p => p.net > 0)
+        .map(p => ({ ...p })) // copy to mutate
+        .sort((a,b) => b.net - a.net);
+      const payers = players
+        .filter(p => p.net < 0)
+        .map(p => ({ ...p }))
+        .sort((a,b) => a.net - b.net); // more negative first
+
+      const transactions = [];
+      payers.forEach(payer => {
+        let remaining = -payer.net;
+        for (const receiver of receivers) {
+          if (remaining <= 0) break;
+          if (receiver.net <= 0) continue;
+          const pay = Math.min(remaining, receiver.net);
+          if (pay > 0.0001) {
+            transactions.push({ from: payer.name, to: receiver.name, amount: +pay.toFixed(2) });
+            remaining = +(remaining - pay).toFixed(2);
+            receiver.net = +(receiver.net - pay).toFixed(2);
+          }
+        }
+      });
+
+      if (transactions.length === 0) {
+        html += `<div>No payments necessary — everything is settled.</div>`;
+      } else {
+        html += `<div class="transactions">`;
+        transactions.forEach(t => {
+          html += `<div>• ${escapeHtml(t.from)} pays ${escapeHtml(t.to)} $${t.amount.toFixed(2)}</div>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `<div style="margin-top:8px;font-size:0.95em;color:#cfe6cf">Total pot: $${totalPoints.toFixed(2)} • Average: $${average.toFixed(2)}</div>`;
+
+      document.getElementById('result').innerHTML = html;
+    }
+
+    function saveRound() {
+      const { players } = readPlayers();
+      const data = players.map(p => ({ name: p.name, points: p.points }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showSavedStatus('✅ Saved!');
+    }
+
+    function loadLastRound() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) {
+        showSavedStatus('No saved round found.');
+        return;
+      }
+      try {
+        const data = JSON.parse(saved);
+        for (let i = 0; i < NUM_PLAYERS; i++) {
+          const nameInput = document.getElementById(`name${i}`);
+          const pointsInput = document.getElementById(`points${i}`);
+          if (data[i]) {
+            nameInput.value = data[i].name || '';
+            pointsInput.value = data[i].points != null ? data[i].points : '';
+          } else {
+            nameInput.value = '';
+            pointsInput.value = '';
+          }
+        }
+        showSavedStatus('📂 Loaded');
+        calculate();
+      } catch (e) {
+        showSavedStatus('Failed to load saved round.');
+      }
+    }
+
+    function showSavedStatus(msg) {
+      const el = document.getElementById('savedStatus');
+      el.textContent = msg;
+      setTimeout(() => el.textContent = '', 1800);
+    }
+
+    // Basic HTML escaping for user-provided names
+    function escapeHtml(s) {
+      return (s + '').replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
