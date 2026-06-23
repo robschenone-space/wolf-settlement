@@ -31,15 +31,12 @@
             margin: 12px 0;
             gap: 10px;
         }
-        label {
-            min-width: 85px;
-        }
         input[type="text"] {
             flex: 1;
             padding: 10px;
         }
         input[type="number"] {
-            width: 85px;
+            width: 90px;
             padding: 10px;
         }
         button {
@@ -73,23 +70,19 @@
         <p class="subtitle">4 players • $1 per point</p>
         
         <div class="row">
-            <label>Player 1:</label>
-            <input type="text" id="p1" placeholder="Player name">
+            <input type="text" id="p1" placeholder="Player 1 name">
             <input type="number" id="pts1" placeholder="points">
         </div>
         <div class="row">
-            <label>Player 2:</label>
-            <input type="text" id="p2" placeholder="Player name">
+            <input type="text" id="p2" placeholder="Player 2 name">
             <input type="number" id="pts2" placeholder="points">
         </div>
         <div class="row">
-            <label>Player 3:</label>
-            <input type="text" id="p3" placeholder="Player name">
+            <input type="text" id="p3" placeholder="Player 3 name">
             <input type="number" id="pts3" placeholder="points">
         </div>
         <div class="row">
-            <label>Player 4:</label>
-            <input type="text" id="p4" placeholder="Player name">
+            <input type="text" id="p4" placeholder="Player 4 name">
             <input type="number" id="pts4" placeholder="points">
         </div>
 
@@ -104,10 +97,10 @@
     <script>
         function calculateSettlement() {
             const players = [
-                document.getElementById('p1').value || "P1",
-                document.getElementById('p2').value || "P2",
-                document.getElementById('p3').value || "P3",
-                document.getElementById('p4').value || "P4"
+                document.getElementById('p1').value || "Player 1",
+                document.getElementById('p2').value || "Player 2",
+                document.getElementById('p3').value || "Player 3",
+                document.getElementById('p4').value || "Player 4"
             ];
             const points = [
                 parseFloat(document.getElementById('pts1').value) || 0,
